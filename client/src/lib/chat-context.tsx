@@ -230,7 +230,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     // Checkout redirects for explicit router outcomes
     if (llmAction === "no_credit" || llmAction === "order_plan") {
       try {
-        const agentId = (import.meta as any).env?.VITE_AGENT_ID || "";
+        const agentId =
+          (import.meta as any).env?.VITE_AGENT_ID ||
+          "did:nv:38d04643ea1bdac8207391a8cf5383b353ee0c28e45eab31b6f288679538dd32";
         const hasApiKey = Boolean(apiKey);
         const checkoutUrl = buildNeverminedCheckoutUrl(agentId, {
           returnApiKey: !hasApiKey,
@@ -283,7 +285,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       const insufficientCredits = credits !== null && credits <= 0;
       if (needsApiKey || insufficientCredits) {
         try {
-          const agentId = (import.meta as any).env?.VITE_AGENT_ID || "";
+          const agentId =
+            (import.meta as any).env?.VITE_AGENT_ID ||
+            "did:nv:38d04643ea1bdac8207391a8cf5383b353ee0c28e45eab31b6f288679538dd32";
           const checkoutUrl = buildNeverminedCheckoutUrl(agentId, {
             returnApiKey: needsApiKey,
           });
