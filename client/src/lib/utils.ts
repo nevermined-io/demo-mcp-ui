@@ -17,9 +17,9 @@ export function buildNeverminedCheckoutUrl(
 ): string {
   const base = `https://nevermined.dev/checkout/${encodeURIComponent(agentId)}`;
   const params = new URLSearchParams();
-  if (options.returnApiKey) params.set("return_api_key", "1");
+  if (options.returnApiKey) params.set("export", "nvm-api-key");
   const returnUrl = options.returnUrl || getDefaultReturnUrl();
-  if (returnUrl) params.set("return_url", returnUrl);
+  if (returnUrl) params.set("returnUrl", returnUrl);
   const query = params.toString();
   return query ? `${base}?${query}` : base;
 }
@@ -46,14 +46,9 @@ export function getDefaultReturnUrl(): string {
 export function extractApiKeyFromUrl(cleanUrl: boolean = true): string | null {
   try {
     const url = new URL(window.location.href);
-    const apiKey =
-      url.searchParams.get("api_key") ||
-      url.searchParams.get("nvmApiKey") ||
-      url.searchParams.get("nvm_api_key");
+    const apiKey = url.searchParams.get("nvm-api-key");
     if (apiKey && cleanUrl) {
-      url.searchParams.delete("api_key");
-      url.searchParams.delete("nvmApiKey");
-      url.searchParams.delete("nvm_api_key");
+      url.searchParams.delete("nvm-api-key");
       const newUrl = `${url.origin}${url.pathname}${url.search}${url.hash}`;
       window.history.replaceState({}, document.title, newUrl);
     }
