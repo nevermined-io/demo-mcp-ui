@@ -1,0 +1,30 @@
+# Dependencies
+node_modules
+
+# Builds
+/dist
+
+# VCS
+.git
+.gitignore
+
+# Local/OS
+.DS_Store
+.vscode
+
+# Env files
+.env
+.env.*
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Package managers not used
+pnpm-lock.yaml
+yarn.lock
+
+# Tests and scripts not needed in runtime
+**/*.test.*
+scripts/
