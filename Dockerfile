@@ -6,6 +6,7 @@ WORKDIR /app
 
 # Copy manifests and install all deps (including dev) for build
 COPY package*.json ./
+COPY *.prompt ./
 
 RUN npm ci
 

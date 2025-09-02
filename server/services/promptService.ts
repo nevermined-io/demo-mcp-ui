@@ -21,6 +21,7 @@ const promptCache: Map<string, CachedPrompt> = new Map();
 export function loadPrompt(filename: string): string {
   try {
     const promptPath = join(process.cwd(), filename);
+    console.log(`Loading prompt from ${promptPath}`);
 
     // Check if file exists and get its modification time
     const stats = statSync(promptPath);
