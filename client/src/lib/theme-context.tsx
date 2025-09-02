@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 
 type Theme = "light" | "dark";
 
@@ -12,7 +18,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
     const savedTheme = localStorage.getItem("theme") as Theme;
-    return savedTheme || "dark";
+    return savedTheme || "light";
   });
 
   useEffect(() => {

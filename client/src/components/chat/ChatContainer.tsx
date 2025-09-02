@@ -88,7 +88,7 @@ export default function ChatContainer() {
   if (!initialized) return null;
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-white text-foreground">
       <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
         <DialogContent>
           <DialogHeader>
@@ -181,7 +181,7 @@ export default function ChatContainer() {
           !sidebarOpen ? "w-full" : "hidden md:flex md:w-[calc(100%-16rem)]"
         )}
       >
-        <div className="p-4 flex items-center justify-between bg-muted/80 border-b">
+        <div className="p-4 flex items-center justify-between bg-white border-b border-border">
           <div className="flex items-center gap-4">
             {!sidebarOpen && (
               <Button
@@ -193,7 +193,9 @@ export default function ChatContainer() {
                 <ChevronRight className="h-4 w-4" />
               </Button>
             )}
-            <div className="text-lg font-semibold">Financial Advisor AI</div>
+            <div className="text-lg font-semibold" style={{ color: "#0D3F48" }}>
+              Financial Advisor AI
+            </div>
           </div>
           <div className="flex items-center gap-4">
             {/* Available credit badge */}
@@ -203,9 +205,13 @@ export default function ChatContainer() {
                 loading
                   ? "min-w-[60px] justify-center text-gray-400"
                   : credits === 0
-                  ? "min-w-[60px] justify-center text-red-500"
-                  : "min-w-[60px] justify-center text-green-600"
+                  ? "min-w-[60px] justify-center text-foreground"
+                  : "min-w-[60px] justify-center text-foreground"
               }
+              style={{
+                backgroundColor: credits === 0 ? "#FECACA" : "#D4F4EE",
+                color: "#18181B",
+              }}
             >
               {hasApiKey ? (loading ? "..." : `${credits} credits`) : "-"}
             </Badge>
@@ -256,7 +262,7 @@ export default function ChatContainer() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-hidden relative">
+        <div className="flex-1 overflow-hidden relative bg-white text-foreground">
           {!isEmpty && (
             <div className="h-full">
               <div className="h-full px-4 overflow-y-auto">
@@ -276,7 +282,9 @@ export default function ChatContainer() {
           )}
         </div>
 
-        <ChatInput disabled={false} />
+        <div className={cn("", isEmpty ? "" : "bg-sidebar p-0")}>
+          <ChatInput disabled={false} />
+        </div>
       </div>
 
       {/* Footer */}

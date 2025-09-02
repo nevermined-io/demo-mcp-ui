@@ -1,5 +1,5 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Plus, Moon, Sun } from "lucide-react";
+import { MessageCircleMore } from "lucide-react";
 import { Conversation } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import { useChat } from "@/lib/chat-context";
@@ -28,12 +28,15 @@ export default function Sidebar({ conversations }: SidebarProps) {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="w-64 h-full flex flex-col bg-sidebar text-sidebar-foreground">
-      <div className="p-4 border-b border-sidebar-border/50">
+    <div className="w-64 h-full flex flex-col bg-white text-sidebar-foreground border-r border-border">
+      <div className="p-4 border-b border-border">
         <Logo />
       </div>
-      <div className="p-4 border-b border-sidebar-border/50 flex justify-between items-center">
-        <h2 className="font-semibold text-sm">Conversations</h2>
+      <div className="p-4 border-b border-border flex justify-between items-center">
+        <h2 className="font-semibold text-sm text-card-foreground flex items-center gap-2">
+          <MessageCircleMore className="w-4 h-4" />
+          Conversations
+        </h2>
         {/**
         <Button
           variant="ghost"
@@ -52,17 +55,16 @@ export default function Sidebar({ conversations }: SidebarProps) {
               key={conversation.id}
               onClick={() => setCurrentConversationId(conversation.id)}
               className={cn(
-                "w-full p-3 rounded-lg flex flex-col items-start gap-1 hover:bg-sidebar-accent transition-colors text-left",
-                currentConversationId === conversation.id && "bg-sidebar-accent"
+                "w-full p-3 rounded-md flex flex-col items-start gap-1 hover:bg-muted transition-colors text-left border border-border bg-white",
+                currentConversationId === conversation.id && "bg-muted"
               )}
             >
               <div className="flex items-center gap-2 w-full">
-                <MessageSquare className="w-4 h-4 shrink-0" />
-                <span className="text-sm font-medium truncate">
+                <span className="text-sm font-medium truncate text-card-foreground max-w-[200px]">
                   {conversation.title}
                 </span>
               </div>
-              <span className="text-xs text-sidebar-foreground/70 pl-6">
+              <span className="text-xs text-muted-foreground pl-6">
                 {format(
                   new Date(conversation.timestamp ?? Date.now()),
                   "MMM d, yyyy 'at' h:mm a"
@@ -72,26 +74,7 @@ export default function Sidebar({ conversations }: SidebarProps) {
           ))}
         </div>
       </ScrollArea>
-      <div className="p-4 border-t border-sidebar-border/50">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full flex items-center justify-center gap-2 hover:bg-sidebar-accent"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        >
-          {theme === "dark" ? (
-            <>
-              <Sun className="h-4 w-4" />
-              <span>Light mode</span>
-            </>
-          ) : (
-            <>
-              <Moon className="h-4 w-4" />
-              <span>Dark mode</span>
-            </>
-          )}
-        </Button>
-      </div>
+      {/* Theme toggle removed as requested */}
     </div>
   );
 }

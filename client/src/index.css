@@ -4,10 +4,10 @@
 
 @layer base {
   :root {
-    --background: 240 85% 97%;
-    --foreground: 240 100% 11%;
+    --background: 0 0% 100%;
+    --foreground: 240 6% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 240 100% 11%;
+    --card-foreground: 240 6% 4%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 100% 11%;
     --primary: 240 100% 11%;
@@ -15,20 +15,21 @@
     --secondary: 240 10% 96.1%;
     --secondary-foreground: 240 100% 11%;
     --muted: 240 10% 96.1%;
-    --muted-foreground: 240 30% 45.1%;
+    --muted-foreground: 240 5% 47%;
     --accent: 240 10% 96.1%;
     --accent-foreground: 240 100% 11%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 10% 89.8%;
     --input: 240 10% 89.8%;
-    --ring: 240 100% 11%;
+    --ring: 240 6% 10%;
     --radius: 0.5rem;
-    --sidebar-background: 240 38% 10%;
-    --sidebar-foreground: 0 0% 100%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 6% 10%;
     --sidebar-accent: 240 100% 16%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 240 20% 38%;
+    --sidebar-border: 240 10% 89.8%;
+    --sidebar-ring: 240 5% 65%;
   }
 
   .dark {
@@ -70,17 +71,18 @@
 }
 
 .light {
-  background: linear-gradient(172.48deg, rgb(207, 210, 243) 2%, rgb(255, 255, 255) 35.57%, rgb(207, 210, 243) 73.43%) fixed;
-  color: rgb(36, 36, 36);
+  background: #ffffff;
+  color: rgb(24, 24, 27);
 }
 
 .light .main-content {
-  background: linear-gradient(172.48deg, rgb(207, 210, 243) 2%, rgb(255, 255, 255) 35.57%, rgb(207, 210, 243) 73.43%) fixed;
+  background: #ffffff;
 }
 
 .light .user-message {
-  background: rgb(0, 0, 56);
-  color: white;
+  background: #D4F4EE;
+  color: #18181B;
+  border: 1px solid #ABE2DD;
 }
 
 .shadow-gold {

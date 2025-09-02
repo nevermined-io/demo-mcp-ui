@@ -95,7 +95,7 @@ export default function MessageGroup({
         className={cn(
           "p-4 whitespace-pre-line",
           messages[0].isUser
-            ? "user-message bg-primary text-primary-foreground rounded-lg"
+            ? "user-message rounded-lg"
             : messages[0].type === "transaction"
             ? "bg-green-500/10 text-green-500 border border-green-500/20 rounded-lg font-medium"
             : messages[0].type === "error"

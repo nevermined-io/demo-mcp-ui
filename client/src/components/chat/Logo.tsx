@@ -5,7 +5,10 @@ interface LogoProps {
   title?: string;
 }
 
-export default function Logo({ className, title = "Nevermined | Pay" }: LogoProps) {
+export default function Logo({
+  className,
+  title = "NeverminedPay",
+}: LogoProps) {
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <svg
@@ -24,7 +27,10 @@ export default function Logo({ className, title = "Nevermined | Pay" }: LogoProp
           fill="currentColor"
         ></path>
       </svg>
-      <span className="font-semibold text-lg">{title}</span>
+      <span className="text-lg" style={{ color: "#0D3F48" }}>
+        <strong>Nevermined</strong>
+        <span className="font-normal">Pay</span>
+      </span>
     </div>
   );
 }

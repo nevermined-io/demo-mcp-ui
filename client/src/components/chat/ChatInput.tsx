@@ -47,7 +47,7 @@ export default function ChatInput({
               ? "Enter your API Key in settings to start..."
               : "Type your message..."
           }
-          className="resize-none pr-12 bg-background/50"
+          className="resize-none pr-12 bg-sidebar text-muted-foreground border-input"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
@@ -63,7 +63,7 @@ export default function ChatInput({
           className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-background/50"
           disabled={disabled || !input.trim()}
         >
-          <Send className="w-4 h-4" />
+          <Send className="w-4 h-4" style={{ color: "#277577" }} />
         </Button>
       </div>
       {isEmpty && (
