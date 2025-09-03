@@ -97,7 +97,11 @@ function SettingsModalContent({
     }
   };
 
-  const handleBurn = async () => {
+  /**
+   * Burns credits
+   * @returns {Promise<void>}
+   */
+  const handleBurn = async (): Promise<void> => {
     setBurnLoading(true);
     setBurnError("");
     setBurnSuccess("");
@@ -132,7 +136,7 @@ function SettingsModalContent({
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
-        <div className="mb-8 p-4 rounded-lg border bg-muted/40">
+        <div className="p-4 rounded-lg border bg-muted/40">
           <div className="mb-2">
             <div className="text-base font-medium">Nevermined API Key</div>
             <div className="text-xs text-muted-foreground">
@@ -160,7 +164,7 @@ function SettingsModalContent({
             </Button>
           </DialogFooter>
         </div>
-        <div className="p-4 rounded-lg border bg-muted/40">
+        {/* <div className="p-4 rounded-lg border bg-muted/40">
           <div className="font-semibold mb-2">Burn credits</div>
           <div className="text-xs text-muted-foreground mb-4">
             Burn a chosen amount of your available credits. This action is
@@ -208,9 +212,9 @@ function SettingsModalContent({
           {burnSuccess && (
             <div className="text-green-600 text-sm mt-2">{burnSuccess}</div>
           )}
-        </div>
+        </div> */}
         {/* Clear conversation history */}
-        <div className="mt-8 p-4 rounded-lg border bg-muted/40">
+        <div className="mt-4 p-4 rounded-lg border bg-muted/40">
           <div className="font-semibold mb-2">Conversation History</div>
           <div className="text-xs text-muted-foreground mb-4">
             Clear all saved conversations and messages from this device.

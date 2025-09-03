@@ -159,7 +159,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const clearHistory = () => {
+  /**
+   * Clears all persisted conversation data and pending chat actions from localStorage,
+   * and resets in-memory chat state.
+   * This removes:
+   * - chat_messages
+   * - chat_conversations
+   * - chat_current_conversation_id
+   * - pendingChatAction (unprocessed/pending message intent)
+   * @returns {void}
+   */
+  const clearHistory = (): void => {
     setMessages([]);
     setConversations([]);
     setCurrentConversationId(null);
@@ -167,6 +177,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem(LS_MESSAGES_KEY);
       localStorage.removeItem(LS_CONVERSATIONS_KEY);
       localStorage.removeItem(LS_CURRENT_CONV_ID_KEY);
+      localStorage.removeItem("pendingChatAction");
     } catch {}
   };
 

@@ -327,7 +327,7 @@ export async function redeemCredits(
   message: string;
 }> {
   const environment = process.env.NVM_ENVIRONMENT || "testing";
-  const agentId = process.env.AGENT_ID;
+  const agentId = process.env.AGENT_DID;
   if (!nvmApiKey || !planId || !agentId) {
     throw new Error("Missing Nevermined API key or plan DID");
   }

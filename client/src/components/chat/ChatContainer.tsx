@@ -37,11 +37,18 @@ import {
 } from "@/components/ui/dialog";
 
 export default function ChatContainer() {
-  const { messages, conversations } = useChat();
+  const { messages, conversations, clearHistory } = useChat();
   const isEmpty = messages.length === 0;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { credits, apiKey, refreshCredits, initialized } = useUserState();
+  const {
+    credits,
+    apiKey,
+    refreshCredits,
+    initialized,
+    setApiKey,
+    setCredits,
+  } = useUserState();
   const loading = credits === null;
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -78,10 +85,24 @@ export default function ChatContainer() {
   }, []);
 
   /**
-   * Logs out the user by removing the API Key from localStorage and showing the settings modal.
+   * Logs out the user by clearing all localStorage data and resetting app state.
+   * - Removes all persisted keys (API key, theme, chat data, pending actions, etc.)
+   * - Resets in-memory user state and chat state
+   * - Opens the settings modal to prompt reconfiguration
+   * @returns {void}
    */
-  const handleLogout = () => {
-    localStorage.removeItem("nvmApiKey");
+  const handleLogout = (): void => {
+    try {
+      localStorage.clear();
+    } catch {}
+    try {
+      setApiKey("");
+      setCredits(null);
+    } catch {}
+    try {
+      clearHistory();
+    } catch {}
+    setSettingsOpen(false);
     refreshCredits();
   };
 
@@ -198,23 +219,25 @@ export default function ChatContainer() {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            {/* Available credit badge */}
-            <Badge
-              variant="secondary"
-              className={
-                loading
-                  ? "min-w-[60px] justify-center text-gray-400"
-                  : credits === 0
-                  ? "min-w-[60px] justify-center text-foreground"
-                  : "min-w-[60px] justify-center text-foreground"
-              }
-              style={{
-                backgroundColor: credits === 0 ? "#FECACA" : "#D4F4EE",
-                color: "#18181B",
-              }}
-            >
-              {hasApiKey ? (loading ? "..." : `${credits} credits`) : "-"}
-            </Badge>
+            {/* Available credit badge (only when logged in) */}
+            {hasApiKey && (
+              <Badge
+                variant="secondary"
+                className={
+                  loading
+                    ? "min-w-[60px] justify-center text-gray-400"
+                    : credits === 0
+                    ? "min-w-[60px] justify-center text-foreground"
+                    : "min-w-[60px] justify-center text-foreground"
+                }
+                style={{
+                  backgroundColor: credits === 0 ? "#FECACA" : "#D4F4EE",
+                  color: "#18181B",
+                }}
+              >
+                {loading ? "..." : `${credits} credits`}
+              </Badge>
+            )}
             {!sidebarOpen && <Logo />}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
