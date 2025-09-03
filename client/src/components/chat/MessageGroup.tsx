@@ -96,7 +96,7 @@ export default function MessageGroup({
     >
       <div
         className={cn(
-          "p-4 whitespace-pre-line",
+          "p-4",
           messages[0].isUser
             ? "user-message rounded-lg"
             : messages[0].type === "transaction"
