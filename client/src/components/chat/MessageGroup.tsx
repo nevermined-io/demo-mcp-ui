@@ -66,7 +66,10 @@ export default function MessageGroup({
             key={index}
             href={part}
             target={
-              urlObj.hostname.endsWith("nevermined.dev") ? undefined : "_blank"
+              urlObj.hostname.endsWith("nevermined.dev") ||
+              urlObj.hostname.endsWith("nevermined.app")
+                ? undefined
+                : "_blank"
             }
             rel="noopener noreferrer"
             className="font-semibold hover:underline"
@@ -221,13 +224,15 @@ export default function MessageGroup({
                * @param {FullMessage} message
                */
               const explorerUrl = `https://base-sepolia.blockscout.com/tx/${message.txHash}`;
+              const basePlanUrl =
+                (import.meta as any).env?.VITE_NVM_ENVIRONMENT === "sandbox"
+                  ? "https://nevermined.app/en/plan/"
+                  : "https://nevermined.dev/en/plan/";
               const credits = Number(message.credits);
               const planId = message.planId
                 ? String(message.planId)
                 : undefined;
-              const planUrl = planId
-                ? `https://nevermined.dev/en/plan/${planId}`
-                : null;
+              const planUrl = planId ? `${basePlanUrl}${planId}` : null;
               const isUserTx = message.type === "nvm-transaction-user";
               return (
                 <motion.div

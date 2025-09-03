@@ -17,6 +17,9 @@ COPY . .
 ARG VITE_AGENT_ID=""
 ENV VITE_AGENT_ID=${VITE_AGENT_ID}
 
+ARG VITE_NVM_ENVIRONMENT
+ENV VITE_NVM_ENVIRONMENT=${VITE_NVM_ENVIRONMENT}
+
 # Build: Vite creates dist/public and esbuild bundles server to dist/index.js
 RUN npm run build
 

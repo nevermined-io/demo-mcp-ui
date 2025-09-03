@@ -42,6 +42,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         "[demo-agent-ui] Missing VITE_AGENT_ID - checkout links will not include agent id"
       );
     }
+    const environment =
+      (import.meta as any).env?.VITE_NVM_ENVIRONMENT ||
+      (globalThis as any)?.__RUNTIME_CONFIG__?.VITE_NVM_ENVIRONMENT;
+    console.log("[demo-agent-ui] VITE_NVM_ENVIRONMENT =", environment);
+    if (!environment) {
+      console.warn(
+        "[demo-agent-ui] Missing VITE_NVM_ENVIRONMENT - checkout links will not include environment"
+      );
+    }
   }, []);
 
   // Deduplicate helpers

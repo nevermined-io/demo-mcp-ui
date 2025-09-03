@@ -22,7 +22,10 @@ export default function MessageBubble({ message }: MessageBubbleProps) {
         let target: undefined | string = "_blank";
         try {
           const u = new URL(part);
-          if (u.hostname.endsWith("nevermined.dev")) {
+          if (
+            u.hostname.endsWith("nevermined.dev") ||
+            u.hostname.endsWith("nevermined.app")
+          ) {
             target = undefined;
           }
         } catch {}

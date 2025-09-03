@@ -79,9 +79,15 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   // Runtime config for the client: exposes window.__RUNTIME_CONFIG__
   app.get("/config.js", (_req: Request, res: Response) => {
     const agentId = process.env.VITE_AGENT_ID || process.env.AGENT_DID || "";
+    const environment =
+      process.env.VITE_NVM_ENVIRONMENT ||
+      process.env.NVM_ENVIRONMENT ||
+      "sandbox";
     const body =
       "window.__RUNTIME_CONFIG__ = Object.assign({}, window.__RUNTIME_CONFIG__, { VITE_AGENT_ID: " +
       JSON.stringify(agentId) +
+      ", VITE_NVM_ENVIRONMENT: " +
+      JSON.stringify(environment) +
       " });";
     res.setHeader("Content-Type", "application/javascript; charset=utf-8");
     res.send(body);

@@ -45,5 +45,8 @@ export default defineConfig({
         (process.env as any).agent_did ||
         ""
     ),
+    "import.meta.env.VITE_NVM_ENVIRONMENT": JSON.stringify(
+      process.env.NVM_ENVIRONMENT || "sandbox"
+    ),
   },
 });
