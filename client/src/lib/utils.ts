@@ -15,7 +15,14 @@ export function buildNeverminedCheckoutUrl(
   agentId: string,
   options: { returnApiKey?: boolean; returnUrl?: string } = {}
 ): string {
-  const base = `https://nevermined.dev/checkout/${encodeURIComponent(agentId)}`;
+  const environment =
+    (import.meta as any).env?.VITE_NVM_ENVIRONMENT ||
+    (globalThis as any)?.__RUNTIME_CONFIG__?.VITE_NVM_ENVIRONMENT;
+  const baseUrl =
+    environment === "sandbox"
+      ? "https://nevermined.app"
+      : "https://nevermined.dev";
+  const base = `${baseUrl}/checkout/${encodeURIComponent(agentId)}`;
   const params = new URLSearchParams();
   if (options.returnApiKey) params.set("export", "nvm-api-key");
   const returnUrl = options.returnUrl || getDefaultReturnUrl();

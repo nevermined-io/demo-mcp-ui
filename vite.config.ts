@@ -46,7 +46,9 @@ export default defineConfig({
         ""
     ),
     "import.meta.env.VITE_NVM_ENVIRONMENT": JSON.stringify(
-      process.env.NVM_ENVIRONMENT || "sandbox"
+      process.env.VITE_NVM_ENVIRONMENT ||
+        process.env.NVM_ENVIRONMENT ||
+        "sandbox"
     ),
   },
 });
