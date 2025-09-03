@@ -33,7 +33,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   // Debug: log agent id presence on mount
   useEffect(() => {
-    const agentId = (import.meta as any).env?.VITE_AGENT_ID;
+    const agentId =
+      (import.meta as any).env?.VITE_AGENT_ID ||
+      (globalThis as any)?.__RUNTIME_CONFIG__?.VITE_AGENT_ID;
     console.log("[demo-agent-ui] VITE_AGENT_ID =", agentId);
     if (!agentId) {
       console.warn(
@@ -232,6 +234,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       try {
         const agentId =
           (import.meta as any).env?.VITE_AGENT_ID ||
+          (globalThis as any)?.__RUNTIME_CONFIG__?.VITE_AGENT_ID ||
           "did:nv:38d04643ea1bdac8207391a8cf5383b353ee0c28e45eab31b6f288679538dd32";
         const hasApiKey = Boolean(apiKey);
         const checkoutUrl = buildNeverminedCheckoutUrl(agentId, {
@@ -287,6 +290,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         try {
           const agentId =
             (import.meta as any).env?.VITE_AGENT_ID ||
+            (globalThis as any)?.__RUNTIME_CONFIG__?.VITE_AGENT_ID ||
             "did:nv:38d04643ea1bdac8207391a8cf5383b353ee0c28e45eab31b6f288679538dd32";
           const checkoutUrl = buildNeverminedCheckoutUrl(agentId, {
             returnApiKey: needsApiKey,

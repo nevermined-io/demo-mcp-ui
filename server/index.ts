@@ -76,6 +76,17 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 (async () => {
   const server = await registerRoutes(app);
 
+  // Runtime config for the client: exposes window.__RUNTIME_CONFIG__
+  app.get("/config.js", (_req: Request, res: Response) => {
+    const agentId = process.env.VITE_AGENT_ID || process.env.AGENT_DID || "";
+    const body =
+      "window.__RUNTIME_CONFIG__ = Object.assign({}, window.__RUNTIME_CONFIG__, { VITE_AGENT_ID: " +
+      JSON.stringify(agentId) +
+      " });";
+    res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+    res.send(body);
+  });
+
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
