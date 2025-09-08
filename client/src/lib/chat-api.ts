@@ -39,8 +39,8 @@ export async function sendMessageToAgent(content: string): Promise<{
   const data = await response.json();
   return {
     response: data.output,
-    txHash: data.redemptionResult.txHash,
-    credits: data.redemptionResult.creditsRedeemed,
+    txHash: data.redemptionResult?.txHash,
+    credits: data.redemptionResult?.creditsRedeemed,
   };
 }
 
@@ -97,4 +97,44 @@ export async function updateCreditsAndGetBurnTx(
   const burnTxResp = await getBurnTransaction(blockNumber);
   if (!burnTxResp) return null;
   return burnTxResp;
+}
+
+/**
+ * Lists available MCP tools via backend proxy.
+ * @returns Tools catalog including input schemas.
+ */
+export async function listMcpToolsClient(): Promise<any> {
+  const apiKey = localStorage.getItem("nvmApiKey");
+  const resp = await fetch("/api/mcp/tools", {
+    method: "GET",
+    headers: {
+      ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+    },
+  });
+  if (!resp.ok) throw new Error("Failed to list MCP tools");
+  return await resp.json();
+}
+
+/**
+ * Calls a specific MCP tool via backend proxy.
+ * @param tool MCP tool name (e.g. "weather.today")
+ * @param args Arguments object matching the tool's input schema
+ * @returns Normalized response with text output
+ */
+export async function callMcpToolClient(
+  tool: string,
+  args: Record<string, any>
+): Promise<{ response: string; content?: any }> {
+  const apiKey = localStorage.getItem("nvmApiKey");
+  const resp = await fetch("/api/mcp/tool", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+    },
+    body: JSON.stringify({ tool, args }),
+  });
+  if (!resp.ok) throw new Error("Failed to call MCP tool");
+  const data = await resp.json();
+  return { response: data.output, content: data.content };
 }

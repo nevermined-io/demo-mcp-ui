@@ -6,6 +6,8 @@ import {
   getCurrentBlockNumber,
   findBurnEvent,
 } from "./blockchainService";
+import { Client as McpClient } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 /**
  * Initializes the Nevermined Payments library.
@@ -76,43 +78,174 @@ export async function getAgentAccessToken(nvmApiKey: string): Promise<{
 }
 
 /**
- * Calls the agent with the synthesized intent and returns the agent response payload.
- * @param {string} inputQuery - Synthesized intent to send to the agent
+ * Calls the agent using MCP. Accepts either a plain input text or an explicit tool call.
+ * - If tool payload is provided, it will be used directly.
+ * - Otherwise, it will call the default tool with a basic mapping from input.
+ * @param {string | { tool: string; args: Record<string, any> }} input - Text intent or MCP tool payload
  * @param {string} nvmApiKey - Nevermined API key
- * @returns {Promise<any>} - The agent response
+ * @returns {Promise<any>} - Normalized agent response
  */
 export async function createTask(
-  inputQuery: string,
+  input: string | { tool: string; args: Record<string, any> },
   nvmApiKey: string
 ): Promise<any> {
-  const agentEndpoint = process.env.AGENT_ENDPOINT;
-  if (!agentEndpoint) {
-    throw new Error("Missing AGENT_ENDPOINT environment variable");
-  }
+  const mcpEndpoint = process.env.MCP_ENDPOINT || "http://localhost:3001/mcp";
 
   const { accessToken } = await getAgentAccessToken(nvmApiKey);
 
-  const response = await fetch(agentEndpoint, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({
-      input_query: inputQuery,
-    }),
+  // Create MCP transport and client
+  const transport = new StreamableHTTPClientTransport(new URL(mcpEndpoint), {
+    requestInit: { headers: { Authorization: `Bearer ${accessToken}` } },
+  });
+  const client = new McpClient({
+    name: "weather-mcp-client",
+    version: "0.1.0",
   });
 
-  if (!response.ok) {
-    throw new Error(
-      `Agent request failed: ${response.status} ${response.statusText}`
-    );
-  }
+  try {
+    await client.connect(transport);
 
-  const result = await response.json();
-  // Return the full agent response as-is; downstream will interpret fields
-  return result;
+    // Decide tool and args
+    let toolName: string;
+    let toolArgs: Record<string, any> = {};
+
+    if (
+      typeof input === "object" &&
+      input &&
+      typeof (input as any).tool === "string"
+    ) {
+      toolName = (input as any).tool;
+      toolArgs = (input as any).args || {};
+    } else {
+      // Default tool name can be overridden via env
+      toolName =
+        process.env.MCP_TOOL ||
+        (process.env.RAW ? "weather.today.raw" : "weather.today");
+      // Basic mapping: treat input as city if provided
+      const inputQuery = String(input || "");
+      toolArgs = inputQuery ? { city: inputQuery } : {};
+    }
+
+    const result: any = await client.callTool({
+      name: toolName,
+      arguments: toolArgs,
+    });
+
+    // Extract text content if present
+    let outputText = "";
+    if (Array.isArray(result?.content)) {
+      const textItem = result.content.find(
+        (c: any) => c && typeof c === "object" && c.type === "text"
+      );
+      if (textItem && typeof textItem.text !== "undefined") {
+        outputText =
+          typeof textItem.text === "string"
+            ? textItem.text
+            : JSON.stringify(textItem.text);
+      }
+    }
+    if (!outputText) {
+      // Fallback: stringify full result content if no text item found
+      outputText = typeof result === "string" ? result : JSON.stringify(result);
+    }
+
+    return {
+      output: outputText,
+    };
+  } catch (error) {
+    console.error("Error creating task:", error);
+    return {
+      output: "Error creating task",
+    };
+  } finally {
+    try {
+      await client.close();
+    } catch {}
+  }
+}
+
+/**
+ * Lists available MCP tools from the configured MCP server.
+ * @param {string} nvmApiKey - Nevermined API key
+ * @returns {Promise<any>} - Tools metadata as returned by the MCP server
+ */
+export async function listMcpTools(nvmApiKey: string): Promise<any> {
+  const mcpEndpoint = process.env.MCP_ENDPOINT || "http://localhost:3001/mcp";
+  const { accessToken } = await getAgentAccessToken(nvmApiKey);
+
+  const transport = new StreamableHTTPClientTransport(new URL(mcpEndpoint), {
+    requestInit: { headers: { Authorization: `Bearer ${accessToken}` } },
+  });
+  const client = new McpClient({
+    name: "weather-mcp-client",
+    version: "0.1.0",
+  });
+  try {
+    await client.connect(transport);
+    const tools = await client.listTools();
+    return tools;
+  } catch (error) {
+    console.error("Error listing MCP tools:", error);
+    return [];
+  } finally {
+    try {
+      await client.close();
+    } catch {}
+  }
+}
+
+/**
+ * Calls a specific MCP tool with arbitrary arguments.
+ * @param {string} toolName - MCP tool name (e.g., "weather.today")
+ * @param {Record<string, any>} args - Arguments to pass to the tool
+ * @param {string} nvmApiKey - Nevermined API key
+ * @returns {Promise<{ output: string, content?: any }>} - Normalized result with extracted text
+ */
+export async function callMcpTool(
+  toolName: string,
+  args: Record<string, any>,
+  nvmApiKey: string
+): Promise<{ output: string; content?: any }> {
+  const mcpEndpoint = process.env.MCP_ENDPOINT || "http://localhost:3001/mcp";
+  const { accessToken } = await getAgentAccessToken(nvmApiKey);
+
+  const transport = new StreamableHTTPClientTransport(new URL(mcpEndpoint), {
+    requestInit: { headers: { Authorization: `Bearer ${accessToken}` } },
+  });
+  const client = new McpClient({
+    name: "weather-mcp-client",
+    version: "0.1.0",
+  });
+
+  try {
+    await client.connect(transport);
+    const result: any = await client.callTool({
+      name: toolName,
+      arguments: args,
+    });
+
+    let outputText = "";
+    if (Array.isArray(result?.content)) {
+      const textItem = result.content.find(
+        (c: any) => c && typeof c === "object" && c.type === "text"
+      );
+      if (textItem && typeof textItem.text !== "undefined") {
+        outputText =
+          typeof textItem.text === "string"
+            ? textItem.text
+            : JSON.stringify(textItem.text);
+      }
+    }
+    if (!outputText) {
+      outputText = typeof result === "string" ? result : JSON.stringify(result);
+    }
+
+    return { output: outputText, content: result?.content };
+  } finally {
+    try {
+      await client.close();
+    } catch {}
+  }
 }
 
 /**
@@ -259,33 +392,10 @@ export async function getBurnTransactionInfo(
  */
 export async function getTask(
   task_id: string,
-  nvmApiKey: string
+  _nvmApiKey: string
 ): Promise<any> {
-  const agentEndpoint = process.env.AGENT_ENDPOINT;
-  if (!agentEndpoint) {
-    throw new Error("Missing AGENT_ENDPOINT environment variable");
-  }
-
-  const { accessToken } = await getAgentAccessToken(nvmApiKey);
-
-  // Construct the task endpoint URL
-  const taskEndpoint = `${agentEndpoint}/${task_id}`;
-
-  const response = await fetch(taskEndpoint, {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Agent request failed: ${response.status} ${response.statusText}`
-    );
-  }
-
-  return await response.json();
+  // MCP flow is synchronous in our usage; keep compatibility by returning a no-op result
+  return { ok: true, task_id };
 }
 
 /**

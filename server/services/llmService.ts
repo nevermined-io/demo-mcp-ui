@@ -97,28 +97,44 @@ export async function llmTitleSummarizer(
  */
 export async function llmIntentSynthesizer(
   history: { role: string; content: string }[],
-  agentContext: string
-): Promise<string> {
+  agentContext: string,
+  toolsCatalog?: any
+): Promise<string | { tool: string; args: Record<string, any> }> {
   const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const toolsSection = toolsCatalog
+    ? `\n\nAvailable MCP tools (with input schemas):\n${JSON.stringify(
+        toolsCatalog
+      )}\n\nTask: Choose the most appropriate tool and produce ONLY a JSON object with this shape:\n{ "tool": "<tool_name>", "args": { /* keys and values matching the tool's inputSchema */ } }\n- Ensure args strictly follow the inputSchema types and required fields.\n- Do NOT add fields that are not in the schema.\n- If multiple tools apply, pick the most specific.\n- Do not include any explanations, only the JSON.`
+    : `\n\nTask: Synthesize ONE clear English sentence that captures the user's intent suitable as an instruction for the agent above. Do not include system text, disclaimers, or extra commentary. Return only the sentence.`;
+
   const prompt = `Agent Context (domain and behavior):\n${agentContext}\n\nConversation history:\n${history
     .map(
       (msg) => `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`
     )
-    .join(
-      "\n"
-    )}\n\nTask: Synthesize ONE clear English sentence that captures the user's intent suitable as an instruction for the agent above. Do not include system text, disclaimers, or extra commentary.\n\nSynthesized intent:`;
+    .join("\n")}${toolsSection}\n\nResponse:`;
   const completion = await openai.chat.completions.create({
     model: "gpt-4.1",
     messages: [
       {
         role: "system",
-        content:
-          "You synthesize the user's intent from a conversation into a single, clear English sentence suitable as an instruction for the given agent context. Be concise and specific.",
+        content: toolsCatalog
+          ? "You convert conversation intent into a strict JSON tool call that adheres to the provided MCP tools' input schemas. Return ONLY valid JSON with tool and args."
+          : "You synthesize the user's intent from a conversation into a single, clear English sentence suitable as an instruction for the given agent context. Be concise and specific.",
       },
       { role: "user", content: prompt },
     ],
     max_tokens: 64,
     temperature: 0.3,
   });
-  return completion.choices[0]?.message?.content?.trim() || "";
+  const text = completion.choices[0]?.message?.content?.trim() || "";
+  if (toolsCatalog) {
+    // Expect JSON { tool, args }
+    try {
+      const obj = JSON.parse(text);
+      if (obj && typeof obj.tool === "string" && typeof obj.args === "object") {
+        return obj as { tool: string; args: Record<string, any> };
+      }
+    } catch {}
+  }
+  return text;
 }

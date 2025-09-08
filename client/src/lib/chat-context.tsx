@@ -7,7 +7,12 @@ import {
   ReactNode,
 } from "react";
 import { FullMessage, ChatContextType } from "./chat-types";
-import { getCurrentBlockNumber, sendMessageToAgent } from "./chat-api";
+import {
+  getCurrentBlockNumber,
+  sendMessageToAgent,
+  listMcpToolsClient,
+  callMcpToolClient,
+} from "./chat-api";
 import { storedConversations, storedMessages } from "./chat-mocks";
 import { Conversation } from "@shared/schema";
 import {
@@ -383,14 +388,33 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       setCurrentConversationId(newConversation.id);
     }
 
-    // Use intent synthesis for agent prompt
-    let agentPrompt = "";
+    // Negotiate MCP tools before intent synthesis
+    let toolsCatalog: any | undefined = undefined;
     try {
-      const data = await intentSynthesizeRequest(llmHistory);
+      toolsCatalog = await listMcpToolsClient();
+    } catch {}
+
+    // Use intent synthesis aware of MCP schemas
+    let agentPrompt = "";
+    let mcpToolCall: { tool: string; args: Record<string, any> } | null = null;
+    try {
+      const data = await intentSynthesizeRequest(llmHistory, toolsCatalog);
       if (data.intent) {
         agentPrompt = data.intent;
+      } else if (
+        data.intent &&
+        typeof data.intent === "object" &&
+        data.intent.tool
+      ) {
+        mcpToolCall = data.intent as {
+          tool: string;
+          args: Record<string, any>;
+        };
+      } else if (data && typeof data === "object" && data.tool) {
+        mcpToolCall = data as { tool: string; args: Record<string, any> };
+      } else if (typeof data === "string") {
+        agentPrompt = data;
       } else {
-        // Do not fallback to raw content; require synthesized intent
         setMessages((prev) => [
           ...prev,
           {
@@ -405,7 +429,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         return;
       }
     } catch (e) {
-      // Do not fallback to raw content; require synthesized intent
       setMessages((prev) => [
         ...prev,
         {
@@ -436,7 +459,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           timestamp: new Date(),
         },
       ]);
-      const agentResponse = await sendMessageToAgent(agentPrompt);
+      let agentResponse:
+        | { response: string; content?: any }
+        | { response: string; txHash?: string; credits?: number };
+      if (mcpToolCall && mcpToolCall.tool) {
+        agentResponse = await callMcpToolClient(
+          mcpToolCall.tool,
+          mcpToolCall.args || {}
+        );
+      } else {
+        agentResponse = await sendMessageToAgent(agentPrompt);
+      }
 
       // Remove thinking message and add the agent's response
       setMessages((prev) => [
@@ -452,20 +485,20 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       ]);
 
       // Handle transaction if present
-      if (agentResponse.txHash) {
+      if ((agentResponse as any).txHash) {
         setMessages((prev) => [
           ...prev,
           {
             id: prev.length + 1,
-            content: `Task completed. ${agentResponse.credits} credit${
-              agentResponse.credits === 1 ? "" : "s"
+            content: `Task completed. ${(agentResponse as any).credits} credit${
+              (agentResponse as any).credits === 1 ? "" : "s"
             } have been deducted from your balance.`,
             type: "nvm-transaction-user",
             isUser: false,
             conversationId: currentConversationId?.toString() || "new",
             timestamp: new Date(),
-            txHash: agentResponse.txHash,
-            credits: agentResponse.credits,
+            txHash: (agentResponse as any).txHash,
+            credits: (agentResponse as any).credits,
           },
         ]);
 
@@ -474,7 +507,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           const data = await getPlanCostRequest();
           const planPrice = Number(data.planPrice);
           const planCredits = Number(data.planCredits);
-          const creditsUsed = Number(agentResponse.credits);
+          const creditsUsed = Number((agentResponse as any).credits);
           const cost =
             planCredits > 0 ? (planPrice / planCredits) * creditsUsed : 0;
           setMessages((prev) => [

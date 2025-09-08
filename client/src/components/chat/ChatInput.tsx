@@ -69,8 +69,8 @@ export default function ChatInput({
       {isEmpty && (
         <div className="mt-4 text-center w-full max-w-2xl mx-auto">
           <p className="text-xs text-muted-foreground">
-            Ask me about cryptocurrency prices, stock market analysis,
-            investment opportunities, or any financial advice you need.
+            Ask for current weather, forecasts, rain probability, wind, alerts,
+            or practical recommendations for travel and outdoor activities.
           </p>
         </div>
       )}

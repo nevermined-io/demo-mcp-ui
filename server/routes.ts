@@ -9,6 +9,8 @@ import {
   getTask,
   getPlanCost,
   redeemCredits,
+  listMcpTools,
+  callMcpTool,
 } from "./services/paymentsService";
 import { llmIntentSynthesizer } from "./services/llmService";
 import { getCurrentBlockNumber } from "./services/blockchainService";
@@ -142,13 +144,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.post("/api/intent/synthesize", async (req, res) => {
     try {
-      const { history } = req.body;
+      const { history, toolsCatalog } = req.body;
       if (!Array.isArray(history)) {
         return res.status(400).json({ error: "Missing or invalid history" });
       }
 
       const agentPrompt = loadAgentPrompt();
-      const intent = await llmIntentSynthesizer(history, agentPrompt);
+      const intent = await llmIntentSynthesizer(
+        history,
+        agentPrompt,
+        toolsCatalog
+      );
       res.json({ intent });
     } catch (err) {
       res.status(500).json({ error: "Failed to synthesize intent" });
@@ -164,8 +170,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
    */
   app.post("/api/agent", async (req, res) => {
     const { input_query: inputQuery } = req.body;
-    if (typeof inputQuery !== "string") {
-      return res.status(400).json({ error: "Missing input_query" });
+    if (
+      typeof inputQuery !== "string" &&
+      !(
+        inputQuery &&
+        typeof inputQuery === "object" &&
+        typeof inputQuery.tool === "string"
+      )
+    ) {
+      return res.status(400).json({ error: "Missing or invalid input_query" });
     }
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -178,11 +191,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ error: "Missing API Key" });
     }
     try {
-      const agentResponse = await createTask(inputQuery, nvmApiKey);
+      const agentResponse = await createTask(inputQuery as any, nvmApiKey);
       return res.status(200).json(agentResponse);
     } catch (error) {
       console.error("Error creating task:", error);
       return res.status(500).json({ error: "Failed to call agent" });
+    }
+  });
+
+  /**
+   * GET /api/mcp/tools
+   * Lists available MCP tools from the configured MCP server
+   * Requires Authorization header with Bearer token
+   */
+  app.get("/api/mcp/tools", async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res
+        .status(401)
+        .json({ error: "Missing or invalid Authorization header" });
+    }
+    const nvmApiKey = authHeader.replace("Bearer ", "").trim();
+    if (!nvmApiKey) {
+      return res.status(401).json({ error: "Missing API Key" });
+    }
+    try {
+      const tools = await listMcpTools(nvmApiKey);
+      res.json(tools);
+    } catch (err) {
+      console.error("Error listing MCP tools:", err);
+      res.status(500).json({ error: "Failed to list MCP tools" });
+    }
+  });
+
+  /**
+   * POST /api/mcp/tool
+   * Calls a specific MCP tool with provided arguments
+   * Requires Authorization header with Bearer token
+   * @body {string} tool - Tool name, e.g. "weather.today"
+   * @body {object} args - Arguments for the tool
+   */
+  app.post("/api/mcp/tool", async (req, res) => {
+    const { tool, args } = req.body || {};
+    if (typeof tool !== "string") {
+      return res.status(400).json({ error: "Missing tool" });
+    }
+    if (args && typeof args !== "object") {
+      return res.status(400).json({ error: "Invalid args" });
+    }
+
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res
+        .status(401)
+        .json({ error: "Missing or invalid Authorization header" });
+    }
+    const nvmApiKey = authHeader.replace("Bearer ", "").trim();
+    if (!nvmApiKey) {
+      return res.status(401).json({ error: "Missing API Key" });
+    }
+
+    try {
+      const result = await callMcpTool(tool, args || {}, nvmApiKey);
+      res.json(result);
+    } catch (err) {
+      console.error("Error calling MCP tool:", err);
+      res.status(500).json({ error: "Failed to call MCP tool" });
     }
   });
 

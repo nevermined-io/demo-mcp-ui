@@ -113,17 +113,18 @@ export default function ChatContainer() {
       <Dialog open={helpOpen} onOpenChange={setHelpOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>About this Financial Advisor</DialogTitle>
+            <DialogTitle>About the Weather Agent</DialogTitle>
             <DialogDescription>
-              Welcome to the Nevermined Financial Advisor AI.
+              Welcome to the Nevermined Weather Agent.
               <br />
               <br />
               <b>What can you do here?</b>
               <br />
-              This AI financial advisor provides real-time market data,
-              investment analysis, and financial advice. Ask about
-              cryptocurrency prices, stock market performance, investment
-              opportunities, and get professional financial guidance.
+              This AI provides real-time weather data, short/medium-range
+              forecasts, alerts and safety guidance, and practical
+              recommendations for travel and outdoor activities. Ask about
+              current conditions, rain probability, wind, temperatures, and
+              severe weather.
               <br />
               <br />
               <b>How does the API Key work?</b>
@@ -136,16 +137,16 @@ export default function ChatContainer() {
               <br />
               <b>What are credits?</b>
               <br />
-              Each financial analysis consumes credits from your Nevermined
-              account. You can see your current credits at the top. If you run
-              out of credits, you can purchase more directly from the chat.
+              Each weather query consumes credits from your Nevermined account.
+              You can see your current credits at the top. If you run out of
+              credits, you can purchase more directly from the chat.
               <br />
               <br />
               <b>Important Disclaimer</b>
               <br />
-              This AI provides general financial information and analysis. It is
-              not personalized financial advice. Always consult with a qualified
-              financial advisor before making investment decisions.
+              This AI provides general weather information and advice. For
+              emergencies or life‑threatening conditions, always follow official
+              alerts and instructions from local authorities.
               <br />
               <br />
               <b>Privacy</b>
@@ -215,7 +216,7 @@ export default function ChatContainer() {
               </Button>
             )}
             <div className="text-lg font-semibold" style={{ color: "#0D3F48" }}>
-              Financial Advisor AI
+              Weather Agent
             </div>
           </div>
           <div className="flex items-center gap-4">
