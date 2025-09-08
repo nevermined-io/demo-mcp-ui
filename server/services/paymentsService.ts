@@ -36,9 +36,11 @@ export function initializePayments(
  * @param {string} planId - The plan DID
  * @returns {Promise<number>} - The available credits
  */
-export async function getUserCredits(nvmApiKey: string): Promise<number> {
+export async function getUserCredits(
+  nvmApiKey: string,
+  planId: string
+): Promise<number> {
   const environment = process.env.NVM_ENVIRONMENT || "testing";
-  const planId = process.env.PLAN_ID;
   if (!nvmApiKey || !planId) {
     throw new Error("Missing Nevermined API key or plan DID");
   }
@@ -53,12 +55,14 @@ export async function getUserCredits(nvmApiKey: string): Promise<number> {
  * @param {string} nvmApiKey - Nevermined API key
  * @returns {Promise<{accessToken: string, agentId: string}>} - The access token and agent ID
  */
-export async function getAgentAccessToken(nvmApiKey: string): Promise<{
+export async function getAgentAccessToken(
+  nvmApiKey: string,
+  planId: string
+): Promise<{
   accessToken: string;
   agentId: string;
 }> {
   const environment = process.env.NVM_ENVIRONMENT || "testing";
-  const planId = process.env.PLAN_ID;
   const agentDid = process.env.AGENT_DID;
 
   if (!nvmApiKey || !planId || !agentDid) {
@@ -87,11 +91,12 @@ export async function getAgentAccessToken(nvmApiKey: string): Promise<{
  */
 export async function createTask(
   input: string | { tool: string; args: Record<string, any> },
-  nvmApiKey: string
+  nvmApiKey: string,
+  planId: string
 ): Promise<any> {
   const mcpEndpoint = process.env.MCP_ENDPOINT || "http://localhost:3001/mcp";
 
-  const { accessToken } = await getAgentAccessToken(nvmApiKey);
+  const { accessToken } = await getAgentAccessToken(nvmApiKey, planId);
 
   // Create MCP transport and client
   const transport = new StreamableHTTPClientTransport(new URL(mcpEndpoint), {
@@ -169,9 +174,12 @@ export async function createTask(
  * @param {string} nvmApiKey - Nevermined API key
  * @returns {Promise<any>} - Tools metadata as returned by the MCP server
  */
-export async function listMcpTools(nvmApiKey: string): Promise<any> {
+export async function listMcpTools(
+  nvmApiKey: string,
+  planId: string
+): Promise<any> {
   const mcpEndpoint = process.env.MCP_ENDPOINT || "http://localhost:3001/mcp";
-  const { accessToken } = await getAgentAccessToken(nvmApiKey);
+  const { accessToken } = await getAgentAccessToken(nvmApiKey, planId);
 
   const transport = new StreamableHTTPClientTransport(new URL(mcpEndpoint), {
     requestInit: { headers: { Authorization: `Bearer ${accessToken}` } },
@@ -204,10 +212,11 @@ export async function listMcpTools(nvmApiKey: string): Promise<any> {
 export async function callMcpTool(
   toolName: string,
   args: Record<string, any>,
-  nvmApiKey: string
+  nvmApiKey: string,
+  planId: string
 ): Promise<{ output: string; content?: any }> {
   const mcpEndpoint = process.env.MCP_ENDPOINT || "http://localhost:3001/mcp";
-  const { accessToken } = await getAgentAccessToken(nvmApiKey);
+  const { accessToken } = await getAgentAccessToken(nvmApiKey, planId);
 
   const transport = new StreamableHTTPClientTransport(new URL(mcpEndpoint), {
     requestInit: { headers: { Authorization: `Bearer ${accessToken}` } },

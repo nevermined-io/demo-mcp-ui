@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { extractApiKeyFromUrl } from "./utils";
+import { extractApiKeyFromUrl, extractPlanIdFromUrl } from "./utils";
 
 /**
  * Context for the global user state (API Key and credits)
@@ -13,6 +13,8 @@ interface UserStateContextType {
   setCredits: (c: number | null) => void;
   refreshCredits: () => Promise<void>;
   initialized: boolean;
+  planId: string;
+  setPlanId: (planId: string) => void;
 }
 
 const UserStateContext = createContext<UserStateContextType | undefined>(
@@ -31,6 +33,9 @@ export function UserStateProvider({ children }: { children: React.ReactNode }) {
   const [apiKey, setApiKey] = useState(
     () => localStorage.getItem("nvmApiKey") || ""
   );
+  const [planId, setPlanId] = useState<string>(
+    () => localStorage.getItem("nvmPlanId") || ""
+  );
   const [credits, setCredits] = useState<number | null>(null);
   const [initialized, setInitialized] = useState(false);
 
@@ -41,8 +46,12 @@ export function UserStateProvider({ children }: { children: React.ReactNode }) {
         setCredits(null);
         return;
       }
+      const planIdHeader = localStorage.getItem("nvmPlanId") || "";
       const resp = await fetch("/api/credit", {
-        headers: { Authorization: `Bearer ${apiKey}` },
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          ...(planIdHeader ? { "X-Plan-Id": planIdHeader } : {}),
+        },
       });
       if (!resp.ok) throw new Error();
       const data = await resp.json();
@@ -67,6 +76,11 @@ export function UserStateProvider({ children }: { children: React.ReactNode }) {
     if (parsed) {
       localStorage.setItem("nvmApiKey", parsed);
       setApiKey(parsed);
+    }
+    const parsedPlan = extractPlanIdFromUrl(true);
+    if (parsedPlan) {
+      localStorage.setItem("nvmPlanId", parsedPlan);
+      setPlanId(parsedPlan);
     }
     // We don't include setters in deps to avoid loops
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -93,6 +107,8 @@ export function UserStateProvider({ children }: { children: React.ReactNode }) {
         setCredits,
         refreshCredits,
         initialized,
+        planId,
+        setPlanId,
       }}
     >
       {children}
